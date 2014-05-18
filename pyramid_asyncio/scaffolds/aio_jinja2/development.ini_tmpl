@@ -45,7 +45,7 @@ worker_class = aiohttp.worker.AsyncGunicornWorker
 ###
 
 [loggers]
-keys = root, aioli
+keys = root, asyncio, {{project}}
 
 [handlers]
 keys = console
@@ -57,10 +57,15 @@ keys = generic
 level = INFO
 handlers = console
 
-[logger_aioli]
+[logger_asyncio]
+level = WARN
+handlers =
+qualname = asyncio
+
+[logger_{{project}}]
 level = DEBUG
 handlers =
-qualname = aioli
+qualname = {{project}}
 
 
 [handler_console]
