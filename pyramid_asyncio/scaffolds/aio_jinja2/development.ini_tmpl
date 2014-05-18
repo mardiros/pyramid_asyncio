@@ -16,7 +16,7 @@ pyramid.includes =
     pyramid_jinja2
 
 
-jinja2.directories = {{project}}:assets/templates
+jinja2.directories = {{project}}:templates/
 jinja2.i18n.domain = {{project}}
 jinja2.filters =
     model_url = pyramid_jinja2.filters:model_url_filter
