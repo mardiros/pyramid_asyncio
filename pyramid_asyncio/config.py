@@ -27,6 +27,9 @@ from pyramid.interfaces import (IDefaultPermission, IRequest, IRouteRequest,
 from .router import Router
 
 
+def _is_generator(func):
+    return isinstance(func, asyncio.Future) or inspect.isgenerator(func)
+
 
 @viewdefaults
 @action_method
@@ -72,7 +75,8 @@ def add_coroutine_view(
             )
 
     view = self.maybe_dotted(view)
-    if not asyncio.iscoroutinefunction(view):
+    # transform the view to a coroutine only in case it's really a coroutine
+    if not asyncio.iscoroutinefunction(view) and _is_generator(view):
         view = asyncio.coroutine(view)
 
     context = self.maybe_dotted(context)
@@ -428,7 +432,10 @@ class ViewDeriver(ViewDeriverBase):
         def rendered_view(context, request):
 
             renderer = view_renderer
-            result = yield from view(context, request)
+
+            result = view(context, request)
+            if _is_generator(result):
+                result = yield from result
 
             if result.__class__ is Response:  # potential common case
                 response = result
