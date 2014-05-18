@@ -144,7 +144,10 @@ class Router(RouterBase):
             raise HTTPNotFound(msg)
         else:
             try:
-                response = yield from view_callable(context, request)
+                if asyncio.iscoroutinefunction(view_callable):
+                    response = yield from view_callable(context, request)
+                else:
+                    response = view_callable(context, request)
             except PredicateMismatch:
                 # look for other views that meet the predicate
                 # criteria
