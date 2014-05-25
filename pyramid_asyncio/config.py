@@ -18,6 +18,7 @@ from pyramid.util import action_method, viewdefaults
 from pyramid.response import Response
 from pyramid.compat import string_types, is_nonstr_iter
 from pyramid.registry import predvalseq, Deferred
+from pyramid.exceptions import ConfigurationError
 from pyramid.interfaces import (IDefaultPermission, IRequest, IRouteRequest,
                                 IView, ISecuredView, IMultiView,
                                 IResponse,
@@ -432,7 +433,6 @@ class ViewDeriver(ViewDeriverBase):
         def rendered_view(context, request):
 
             renderer = view_renderer
-
             result = view(context, request)
             if _is_generator(result):
                 result = yield from result
