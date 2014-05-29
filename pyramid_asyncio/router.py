@@ -4,6 +4,7 @@ asyncio coroutine.
 """
 
 import asyncio
+import inspect
 
 from zope.interface import (
     implementer,
@@ -42,9 +43,11 @@ from .tweens import excview_tween_factory
 @implementer(IRouter)
 class Router(RouterBase):
 
-    def __init__(self, registry):
-        registry.registerUtility(excview_tween_factory, ITweens)
-        super().__init__(registry)
+    def __init__(self, config):
+        self.first_route = True
+        self.config = config
+        config.registry.registerUtility(excview_tween_factory, ITweens)
+        super().__init__(config.registry)
 
     @asyncio.coroutine
     def handle_request(self, request):
@@ -233,3 +236,14 @@ class Router(RouterBase):
 
         response = response(request.environ, start_response)
         return response
+
+    exit_handlers = []
+
+    @asyncio.coroutine
+    def close(self):
+        for handler in self.exit_handlers:
+            yield from handler()
+
+
+def add_exit_handler(config, handler):
+    Router.exit_handlers.append(handler)

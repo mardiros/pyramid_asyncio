@@ -25,7 +25,7 @@ from pyramid.interfaces import (IDefaultPermission, IRequest, IRouteRequest,
                                 IRendererFactory, IViewClassifier,
                                 IExceptionResponse, IExceptionViewClassifier,
                                 )
-from .router import Router
+from .router import Router, add_exit_handler
 
 
 def _is_generator(func):
@@ -405,7 +405,7 @@ def add_coroutine_view(
 def make_asyncio_app(config):
     self = config
     self.commit()
-    app = Router(self.registry)
+    app = Router(self)
 
     # Allow tools like "pshell development.ini" to find the 'last'
     # registry configured.
