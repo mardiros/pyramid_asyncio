@@ -30,14 +30,14 @@ jinja2.filters =
 # debugtoolbar.hosts = 127.0.0.1 ::1
 
 ###
-# wsgi server configuration
+# server configuration (This is not exactly wsgi)
 ###
 
 [server:main]
 use = egg:gunicorn#main
 host = 0.0.0.0
 port = 6543
-worker_class = aiohttp.worker.AsyncGunicornWorker
+worker_class = pyramid_asyncio.worker.AsyncGunicornWorker
 
 ###
 # logging configuration
