@@ -5,6 +5,7 @@ asyncio coroutine.
 
 import asyncio
 import inspect
+import logging
 
 from zope.interface import (
     implementer,
@@ -27,8 +28,9 @@ from pyramid.events import (
     NewResponse,
     )
 
-from pyramid.exceptions import PredicateMismatch
+from pyramid.exceptions import PredicateMismatch, ConfigurationError
 from pyramid.httpexceptions import HTTPNotFound
+from pyramid.settings import aslist
 from pyramid.request import Request
 
 from pyramid.traversal import (
@@ -38,6 +40,8 @@ from pyramid.traversal import (
 from pyramid.router import Router as RouterBase
 
 from .tweens import excview_tween_factory
+
+log = logging.getLogger(__name__)
 
 
 @implementer(IRouter)
@@ -238,6 +242,26 @@ class Router(RouterBase):
         return response
 
     exit_handlers = []
+
+    @asyncio.coroutine
+    def open(self):
+        settings = self.config.get_settings()
+        aioincludes = aslist(settings.get('asyncio.includes', ''))
+
+        for callable in aioincludes:
+            try:
+
+                module = self.config.maybe_dotted(callable)
+                try:
+                    includeme = getattr(module, 'includeme')
+                except AttributeError:
+                    raise ConfigurationError(
+                        "module %r has no attribute 'includeme'" % (module.__name__)
+                        )
+
+                yield from includeme(self.config)
+            except Exception:
+                log.exception('{} raise an exception'.format(includeme))
 
     @asyncio.coroutine
     def close(self):
