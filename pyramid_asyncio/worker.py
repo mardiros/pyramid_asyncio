@@ -1,9 +1,8 @@
 import asyncio
 
-from aiohttp.worker import AsyncGunicornWorker as BaseWorker
+from gunicorn.workers.gaiohttp import AiohttpWorker as BaseWorker
 
-
-class AsyncGunicornWorker(BaseWorker):
+class AiohttpWorker(BaseWorker):
 
     @asyncio.coroutine
     def _run(self):

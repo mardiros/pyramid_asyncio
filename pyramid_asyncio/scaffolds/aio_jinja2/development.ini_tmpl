@@ -37,7 +37,7 @@ jinja2.filters =
 use = egg:gunicorn#main
 host = 0.0.0.0
 port = 6543
-worker_class = pyramid_asyncio.worker.AsyncGunicornWorker
+worker_class = pyramid_asyncio.worker.AiohttpWorker
 
 ###
 # logging configuration

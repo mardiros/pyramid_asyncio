@@ -17,7 +17,7 @@ with open(os.path.join(here, 'CHANGES.rst')) as changes:
 
 requires = [
     'pyramid',
-    'gunicorn',
+    'gunicorn >= 19.0',
     'aiohttp'
     ]
 
