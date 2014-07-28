@@ -213,7 +213,7 @@ class Router(RouterBase):
                 response = yield from handle_request(request)
 
                 if request.response_callbacks:
-                    request._process_response_callbacks(response)
+                    yield from request._process_response_callbacks(response)
 
                 has_listeners and notify(NewResponse(request, response))
 
@@ -221,7 +221,7 @@ class Router(RouterBase):
 
             finally:
                 if request.finished_callbacks:
-                    request._process_finished_callbacks()
+                    yield from request._process_finished_callbacks()
 
         finally:
             manager.pop()
@@ -235,9 +235,8 @@ class Router(RouterBase):
         within the application registry; call ``start_response`` and
         return an iterable.
         """
-        request = self.request_factory(environ)
+        request = yield from self.request_factory(environ)
         response = yield from self.invoke_subrequest(request, use_tweens=True)
-
         response = response(request.environ, start_response)
         return response
 
@@ -250,7 +249,6 @@ class Router(RouterBase):
 
         for callable in aioincludes:
             try:
-
                 module = self.config.maybe_dotted(callable)
                 try:
                     includeme = getattr(module, 'includeme')

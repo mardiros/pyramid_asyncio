@@ -26,10 +26,8 @@ from pyramid.interfaces import (IDefaultPermission, IRequest, IRouteRequest,
                                 IExceptionResponse, IExceptionViewClassifier,
                                 )
 from .router import Router, add_exit_handler
-
-
-def _is_generator(func):
-    return isinstance(func, asyncio.Future) or inspect.isgenerator(func)
+from .request import RequestFactory
+from .aioinspect import is_generator
 
 
 @viewdefaults
@@ -77,7 +75,7 @@ def add_coroutine_view(
 
     view = self.maybe_dotted(view)
     # transform the view to a coroutine only in case it's really a coroutine
-    if not asyncio.iscoroutinefunction(view) and _is_generator(view):
+    if not asyncio.iscoroutinefunction(view) and is_generator(view):
         view = asyncio.coroutine(view)
 
     context = self.maybe_dotted(context)
@@ -404,6 +402,7 @@ def add_coroutine_view(
 
 def make_asyncio_app(config):
     self = config
+    self.set_request_factory(RequestFactory())
     self.commit()
     app = Router(self)
 
@@ -434,7 +433,7 @@ class ViewDeriver(ViewDeriverBase):
 
             renderer = view_renderer
             result = view(context, request)
-            if _is_generator(result):
+            if is_generator(result):
                 result = yield from result
 
             if result.__class__ is Response:  # potential common case
