@@ -259,7 +259,7 @@ class Router(RouterBase):
 
                 yield from includeme(self.config)
             except Exception:
-                log.exception('{} raise an exception'.format(includeme))
+                log.exception('{} raise an exception'.format(callable))
 
     @asyncio.coroutine
     def close(self):
