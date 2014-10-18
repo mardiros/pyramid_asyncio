@@ -31,15 +31,13 @@ from pyramid.events import (
 from pyramid.exceptions import PredicateMismatch, ConfigurationError
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.settings import aslist
-from pyramid.request import Request
 
 from pyramid.traversal import (
     ResourceTreeTraverser,
     )
 
 from pyramid.router import Router as RouterBase
-
-from .tweens import excview_tween_factory
+from .tweens import Tweens
 
 log = logging.getLogger(__name__)
 
@@ -50,11 +48,11 @@ class Router(RouterBase):
     def __init__(self, config):
         self.first_route = True
         self.config = config
-        config.registry.registerUtility(excview_tween_factory, ITweens)
         super().__init__(config.registry)
 
     @asyncio.coroutine
     def handle_request(self, request):
+
         attrs = request.__dict__
         registry = attrs['registry']
 
@@ -200,7 +198,14 @@ class Router(RouterBase):
         request.invoke_subrequest = self.invoke_subrequest
 
         if use_tweens:
-            handle_request = self.handle_request
+            # XXX Recopy tweens state, registered my own ITweens does not
+            # save the registred handler. Should invest more 
+            tween = Tweens()
+            registred_tweens = registry.queryUtility(ITweens)
+            tween.explicit = registred_tweens.explicit
+            tween.implicit = registred_tweens.implicit
+            handle_request = tween(self.orig_handle_request, registry)
+            # handle_request = self.handle_request
         else:
             handle_request = self.orig_handle_request
 
@@ -210,6 +215,7 @@ class Router(RouterBase):
                 extensions = self.request_extensions
                 if extensions is not None:
                     request._set_extensions(extensions)
+
                 response = yield from handle_request(request)
 
                 if request.response_callbacks:
@@ -260,6 +266,7 @@ class Router(RouterBase):
                 yield from includeme(self.config)
             except Exception:
                 log.exception('{} raise an exception'.format(callable))
+        self.config.commit()
 
     @asyncio.coroutine
     def close(self):
