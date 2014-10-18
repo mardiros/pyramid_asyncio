@@ -40,9 +40,12 @@ class RequestFactory:
     def __call__(self, environ):
         """ Return an object implementing IRequest, e.g. an instance
         of ``pyramid.request.Request``"""
-        # XXX we must read the input, can't stream the input
-        # until rewrite the whole request object of webob...
-        body = yield from environ['wsgi.input'].read()
+
+        body = environ['wsgi.input'].read()
+        if is_generator(body):
+            # wsgi.input can be a generator depending of
+            # the configuration of aiohttp
+            body = yield from body 
         environ['wsgi.input'] = BytesIO(body)
         return Request(environ)
 
