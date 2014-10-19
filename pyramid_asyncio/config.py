@@ -442,12 +442,18 @@ class ViewDeriver(ViewDeriverBase):
 
         wrapped_view = view
         if self.authn_policy and self.authz_policy and (permission is not None):
+            @asyncio.coroutine
             def _permitted(context, request):
                 principals = self.authn_policy.effective_principals(request)
+                if is_generator(principals):
+                    principals = yield from principals
                 return self.authz_policy.permits(context, principals,
                                                  permission)
+            @asyncio.coroutine
             def _secured_view(context, request):
                 result = _permitted(context, request)
+                if is_generator(result):
+                    result = yield from result
                 if result:
                     return view(context, request)
                 view_name = getattr(view, '__name__', view)

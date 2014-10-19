@@ -38,6 +38,7 @@ from pyramid.traversal import (
 
 from pyramid.router import Router as RouterBase
 from .tweens import Tweens
+from pyramid_asyncio.aioinspect import is_generator
 
 log = logging.getLogger(__name__)
 
@@ -151,6 +152,8 @@ class Router(RouterBase):
             try:
                 if asyncio.iscoroutinefunction(view_callable):
                     response = yield from view_callable(context, request)
+                    while is_generator(response):
+                        response = yield from response
                 else:
                     response = view_callable(context, request)
             except PredicateMismatch:
