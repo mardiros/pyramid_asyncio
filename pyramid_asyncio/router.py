@@ -29,7 +29,7 @@ from pyramid.events import (
     )
 
 from pyramid.exceptions import PredicateMismatch, ConfigurationError
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPException, HTTPNotFound
 from pyramid.settings import aslist
 
 from pyramid.traversal import (
@@ -242,7 +242,11 @@ class Router(RouterBase):
         return an iterable.
         """
         request = yield from self.request_factory(environ)
-        response = yield from self.invoke_subrequest(request, use_tweens=True)
+        try:
+            response = yield from self.invoke_subrequest(request,
+                                                         use_tweens=True)
+        except HTTPException as exc:
+            response = exc
         response = response(request.environ, start_response)
         return response
 
