@@ -2,6 +2,7 @@
 This code is a big copy/paste of code from pyramid and change the
 view in order to handle it as a coroutine
 """
+import warnings
 import asyncio
 import inspect
 
@@ -11,10 +12,14 @@ from pyramid import renderers
 from pyramid.config import Configurator as ConfiguratorBase, global_registries
 from pyramid.config.views import (ViewDeriver as ViewDeriverBase,
                                   StaticURLInfo as StaticURLInfoBase,
-                                  isexception)
-from pyramid.config.util import DEFAULT_PHASH
+                                  isexception,
+                                  wraps_view,
+                                  view_description)
+from pyramid.config.util import DEFAULT_PHASH, MAX_ORDER
 from pyramid.events import ApplicationCreated
 from pyramid.util import action_method, viewdefaults
+from pyramid.config.views import MultiView
+from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.response import Response
 from pyramid.compat import string_types, is_nonstr_iter
 from pyramid.registry import predvalseq, Deferred
@@ -25,6 +30,7 @@ from pyramid.interfaces import (IDefaultPermission, IRequest, IRouteRequest,
                                 IRendererFactory, IViewClassifier,
                                 IExceptionResponse, IExceptionViewClassifier,
                                 )
+from pyramid.httpexceptions import HTTPForbidden
 from .router import Router, add_exit_handler
 from .request import RequestFactory
 from .aioinspect import is_generator
@@ -424,6 +430,37 @@ def make_asyncio_app(config):
 
 
 class ViewDeriver(ViewDeriverBase):
+
+    @wraps_view
+    def secured_view(self, view):
+        permission = self.kw.get('permission')
+        if permission == NO_PERMISSION_REQUIRED:
+            # allow views registered within configurations that have a
+            # default permission to explicitly override the default
+            # permission, replacing it with no permission at all
+            permission = None
+
+        wrapped_view = view
+        if self.authn_policy and self.authz_policy and (permission is not None):
+            def _permitted(context, request):
+                principals = self.authn_policy.effective_principals(request)
+                return self.authz_policy.permits(context, principals,
+                                                 permission)
+            def _secured_view(context, request):
+                result = _permitted(context, request)
+                if result:
+                    return view(context, request)
+                view_name = getattr(view, '__name__', view)
+                msg = getattr(
+                    request, 'authdebug_message',
+                    'Unauthorized: %s failed permission check' % view_name)
+                raise HTTPForbidden(msg, result=result)
+            _secured_view.__call_permissive__ = view
+            _secured_view.__permitted__ = _permitted
+            _secured_view.__permission__ = permission
+            wrapped_view = _secured_view
+
+        return wrapped_view
 
     def _rendered_view(self, view, view_renderer):
         """ Render an async view """
