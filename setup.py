@@ -21,6 +21,12 @@ requires = [
     'aiohttp'
     ]
 
+extras_require = {
+    'session': ['pyramid-kvs >= 0.2',  # XXX unreleased
+                'asyncio-redis',
+                ]
+}
+
 if py_version < (3, 4):
     requires.append('asyncio')
 
@@ -49,6 +55,7 @@ setup(name='pyramid-asyncio',
       test_suite='pyramid_asyncio',
       install_requires=requires,
       license="BSD-derived (http://www.repoze.org/LICENSE.txt)",
+      extras_require=extras_require,
       entry_points = """\
       [pyramid.scaffold]
       aio_jinja2=pyramid_asyncio.scaffolds:AioJinja2Template

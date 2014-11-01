@@ -65,6 +65,8 @@ class Router(RouterBase):
         has_listeners = registry.has_listeners
         notify = registry.notify
         logger = self.logger
+        if is_generator(request.session):
+            request.session = yield from request.session
 
         has_listeners and notify(NewRequest(request))
         # find the root object
