@@ -154,10 +154,10 @@ class Router(RouterBase):
             try:
                 if asyncio.iscoroutinefunction(view_callable):
                     response = yield from view_callable(context, request)
-                    while is_generator(response):
-                        response = yield from response
                 else:
                     response = view_callable(context, request)
+                while is_generator(response):
+                    response = yield from response
             except PredicateMismatch:
                 # look for other views that meet the predicate
                 # criteria
