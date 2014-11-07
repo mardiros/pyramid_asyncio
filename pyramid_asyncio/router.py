@@ -16,6 +16,7 @@ from pyramid.interfaces import (
     IRequest,
     IRouteRequest,
     IRouter,
+    ISessionFactory,
     ITraverser,
     IView,
     IViewClassifier,
@@ -65,7 +66,7 @@ class Router(RouterBase):
         has_listeners = registry.has_listeners
         notify = registry.notify
         logger = self.logger
-        if is_generator(request.session):
+        if request.registry.queryUtility(ISessionFactory) is not None and is_generator(request.session):
             request.session = yield from request.session
 
         has_listeners and notify(NewRequest(request))
@@ -204,7 +205,7 @@ class Router(RouterBase):
 
         if use_tweens:
             # XXX Recopy tweens state, registered my own ITweens does not
-            # save the registred handler. Should invest more 
+            # save the registred handler. Should invest more
             tween = Tweens()
             registred_tweens = registry.queryUtility(ITweens)
             tween.explicit = registred_tweens.explicit
