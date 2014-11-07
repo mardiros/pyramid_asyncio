@@ -16,6 +16,7 @@ from pyramid.interfaces import (
     IRequest,
     IRouteRequest,
     IRouter,
+    ISessionFactory,
     ITraverser,
     IView,
     IViewClassifier,
@@ -65,7 +66,7 @@ class Router(RouterBase):
         has_listeners = registry.has_listeners
         notify = registry.notify
         logger = self.logger
-        if is_generator(request.session):
+        if request.registry.queryUtility(ISessionFactory) is not None and is_generator(request.session):
             request.session = yield from request.session
 
         has_listeners and notify(NewRequest(request))
