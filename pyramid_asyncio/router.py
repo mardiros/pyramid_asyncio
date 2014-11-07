@@ -204,13 +204,15 @@ class Router(RouterBase):
 
         if use_tweens:
             # XXX Recopy tweens state, registered my own ITweens does not
-            # save the registred handler. Should invest more 
+            # save the registred handler. Should invest more
             tween = Tweens()
             registred_tweens = registry.queryUtility(ITweens)
-            tween.explicit = registred_tweens.explicit
-            tween.implicit = registred_tweens.implicit
-            handle_request = tween(self.orig_handle_request, registry)
-            # handle_request = self.handle_request
+            if registred_tweens is not None:
+                tween.explicit = registred_tweens.explicit
+                tween.implicit = registred_tweens.implicit
+                handle_request = tween(self.orig_handle_request, registry)
+            else:
+                handle_request = self.orig_handle_request
         else:
             handle_request = self.orig_handle_request
 
