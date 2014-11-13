@@ -451,9 +451,7 @@ class ViewDeriver(ViewDeriverBase):
                                                  permission)
             @asyncio.coroutine
             def _secured_view(context, request):
-                result = _permitted(context, request)
-                if is_generator(result):
-                    result = yield from result
+                result = yield from _permitted(context, request)
                 if result:
                     return view(context, request)
                 view_name = getattr(view, '__name__', view)

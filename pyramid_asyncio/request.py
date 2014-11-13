@@ -5,8 +5,12 @@ from zope.interface import implementer
 from pyramid.interfaces import (
     IRequestFactory,
     IRequest,
+    IAuthenticationPolicy,
+    IAuthorizationPolicy,
     )
+
 from pyramid.request import Request as BaseRequest
+from pyramid.security import Allowed
 from .aioinspect import is_generator
 
 
@@ -30,6 +34,26 @@ class Request(BaseRequest):
             callback_resp = callback(self)
             if is_generator(callback_resp):
                 yield from callback_resp
+
+    @asyncio.coroutine
+    def has_permission(self, permission, context=None):
+        if context is None:
+            context = self.context
+        reg = self.registry
+        authn_policy = reg.queryUtility(IAuthenticationPolicy)
+        if authn_policy is None:
+            return Allowed('No authentication policy in use.')
+        authz_policy = reg.queryUtility(IAuthorizationPolicy)
+        if authz_policy is None:
+            raise ValueError('Authentication policy registered without '
+                             'authorization policy') # should never happen
+        principals = authn_policy.effective_principals(self)
+        if is_generator(principals):
+            principals = yield from principals
+        permits = authz_policy.permits(context, principals, permission)
+        if is_generator(permits):
+            permits = yield from permits
+        return permits
 
 
 @implementer(IRequestFactory)
