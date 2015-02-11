@@ -2,10 +2,11 @@ import os
 import sys
 from setuptools import setup, find_packages
 
+NAME = 'pyramid-asyncio'
 
 py_version = sys.version_info[:2]
 if py_version < (3, 3):
-    raise Exception("websockets requires Python >= 3.3.")
+    raise Exception("{name} requires Python >= 3.3.".format(name=NAME))
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -18,12 +19,13 @@ with open(os.path.join(here, 'CHANGES.rst')) as changes:
 requires = [
     'pyramid',
     'gunicorn >= 19.0',
-    'aiohttp'
+    'aiohttp',
     ]
 
 extras_require = {
     'session': ['pyramid-kvs >= 0.2',  # XXX unreleased
                 'asyncio-redis',
+                'simplejson'
                 ]
 }
 
@@ -31,7 +33,7 @@ if py_version < (3, 4):
     requires.append('asyncio')
 
 
-setup(name='pyramid-asyncio',
+setup(name=NAME,
       version='0.0',
       description='Pyramid Asyncio Glue',
       # long_description=README + '\n\n' + CHANGES,
@@ -52,7 +54,7 @@ setup(name='pyramid-asyncio',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
-      test_suite='pyramid_asyncio',
+      test_suite='{name}.tests'.format(name=NAME),
       install_requires=requires,
       license="BSD-derived (http://www.repoze.org/LICENSE.txt)",
       extras_require=extras_require,
