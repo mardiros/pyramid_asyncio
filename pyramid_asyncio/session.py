@@ -4,12 +4,9 @@ from collections import defaultdict
 
 from zope.interface import implementer
 from pyramid.interfaces import ISession, ISessionFactory
-try:
-    from asyncio_redis import Connection
-    from pyramid_kvs import session, serializer, kvs
-    from pyramid_kvs.serializer import serializer
-except ImportError:
-    raise Exception("Packages asyncio_redis and pyramid_kvs required")
+
+from .kvs import session, serializer
+
 
 log = logging.getLogger(__name__)
 
@@ -54,41 +51,6 @@ class CookieSession(session.CookieSession):
         response.set_cookie(self.key_name, self._session_key,
                             self.client.ttl)
         yield from self.client.set(self._session_key, self._session_data)
-
-
-class AIORedis(kvs.KVS):
-
-    @asyncio.coroutine
-    def get(self, key, default=None):
-        if key is None:
-            return default
-        ret = yield from self.raw_get(key)
-        if ret is None:
-            return default
-        return self._serializer.loads(ret)
-
-    @asyncio.coroutine
-    def _create_client(self, **kwargs):
-        return (yield from Connection.create(**kwargs))
-
-    def _get_key(self, key):
-        return super()._get_key(key).decode('utf-8')
-
-    def raw_get(self, key, default=None):
-        ret = yield from self._client.get(self._get_key(key))
-        return default if ret is None else ret
-
-    @asyncio.coroutine
-    def raw_set(self, key, value, ttl):
-        yield from self._client.setex(self._get_key(key), ttl,
-                                      value)
-
-    @asyncio.coroutine
-    def incr(self, key):
-        return (yield from self._client.incr(self._get_key(key)))
-
-
-kvs._implementations['aioredis'] = AIORedis  # XXX Private access
 
 
 @implementer(ISessionFactory)
