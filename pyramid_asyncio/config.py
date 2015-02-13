@@ -532,3 +532,12 @@ class ViewDeriver(ViewDeriverBase):
             return response
 
         return viewresult_to_response
+
+
+def includeme(config):
+    # Does not work as expected :/
+    # config.registry.registerUtility(Tweens(), ITweens)
+
+    config.add_directive('add_coroutine_view', add_coroutine_view)
+    config.add_directive('make_asyncio_app', make_asyncio_app)
+    config.add_directive('add_exit_handler', add_exit_handler)

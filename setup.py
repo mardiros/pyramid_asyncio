@@ -1,5 +1,7 @@
 import os
 import sys
+import re
+
 from setuptools import setup, find_packages
 
 NAME = 'pyramid-asyncio'
@@ -14,6 +16,11 @@ with open(os.path.join(here, 'README.rst')) as readme:
     README = readme.read()
 with open(os.path.join(here, 'CHANGES.rst')) as changes:
     CHANGES = changes.read()
+
+with open(os.path.join(here, NAME.replace('-', '_'),
+                       '__init__.py')) as version:
+    VERSION = re.compile(r".*__version__ = '(.*?)'",
+                         re.S).match(version.read()).group(1)
 
 
 requires = [
@@ -34,7 +41,7 @@ if py_version < (3, 4):
 
 
 setup(name=NAME,
-      version='0.0',
+      version=VERSION,
       description='Pyramid Asyncio Glue',
       # long_description=README + '\n\n' + CHANGES,
       classifiers=[
