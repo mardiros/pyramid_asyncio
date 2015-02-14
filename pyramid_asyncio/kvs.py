@@ -26,7 +26,7 @@ class AIORedis(kvs.KVS):
 
     @asyncio.coroutine
     def delete(self, key):
-        yield from self._client.delete(self._get_key(key))
+        yield from self._client.delete([self._get_key(key)])
 
     @asyncio.coroutine
     def _create_client(self, **kwargs):
