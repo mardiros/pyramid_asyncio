@@ -43,7 +43,7 @@ if py_version < (3, 4):
 setup(name=NAME,
       version=VERSION,
       description='Pyramid Asyncio Glue',
-      # long_description=README + '\n\n' + CHANGES,
+      long_description=README + '\n\n' + CHANGES,
       classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.3",
