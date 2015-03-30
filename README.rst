@@ -1,4 +1,5 @@
-pyramid_asyncio
+===============
+pyramid-asyncio
 ===============
 
 A lib that override pyramid to build asyncio web application.
