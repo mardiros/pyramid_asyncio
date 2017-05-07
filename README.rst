@@ -7,6 +7,13 @@ A lib that override pyramid to build asyncio web application.
 Basically, it change views to asyncio coroutine.
 
 
+
+.. important ::
+
+  This library is a proof of concept and has not been ported to recent version
+  of Pyramid and aiohttp.
+
+
 Getting Started
 ---------------
 
