@@ -24,9 +24,9 @@ with open(os.path.join(here, NAME.replace('-', '_'),
 
 
 requires = [
-    'pyramid',
+    'pyramid < 1.7a1',
     'gunicorn >= 19.0',
-    'aiohttp',
+    'aiohttp < 2.0',
     ]
 
 extras_require = {
